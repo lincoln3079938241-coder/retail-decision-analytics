@@ -1,0 +1,9 @@
+{
+  "test_observations": 2096,
+  "test_households": 476,
+  "baseline_response_rate": 0.11927480916030535,
+  "top_decile_response_rate": 0.4523809523809524,
+  "top_decile_lift": 3.7927619047619046,
+  "top_20pct_responder_capture": 0.624,
+  "best_model": "Random Forest"
+}

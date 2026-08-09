@@ -1,0 +1,13 @@
+{
+  "transaction_rows": 2595732,
+  "households": 2500,
+  "baskets": 276484,
+  "products_in_transactions": 92339,
+  "weeks": 102,
+  "negative_or_zero_quantity_rows": 14466,
+  "negative_or_zero_sales_rows": 18850,
+  "exact_duplicate_transaction_rows": 0,
+  "missing_department_rows": 0,
+  "campaign_exposures": 7208,
+  "coupon_redemptions": 2318
+}

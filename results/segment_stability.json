@@ -1,0 +1,9 @@
+{
+  "chosen_k": 4,
+  "selection_basis": "k=4 retained for distinct business profiles; k=2 has the strongest silhouette and is disclosed",
+  "feature_scaling": "log1p on skewed activity/value variables followed by StandardScaler on all model features",
+  "seed_stability_min_ari": 0.9623765454469873,
+  "seed_stability_mean_ari": 0.9871507688649228,
+  "winsorized_1_99pct_ari_vs_primary": 0.9431413429623072,
+  "outlier_note": "log transforms limit leverage; a 1st/99th percentile sensitivity run is reported but not used to overwrite observed values"
+}

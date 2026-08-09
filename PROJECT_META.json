@@ -1,0 +1,32 @@
+{
+  "slug": "retail-decision-analytics",
+  "title": "Retail Decision Analytics",
+  "rank": 1,
+  "score": 90,
+  "score_breakdown": {
+    "business_value": 18,
+    "technical_depth": 18,
+    "data_analysis_depth": 18,
+    "visualization": 9,
+    "engineering_quality": 9,
+    "interview_explainability": 9,
+    "portfolio_differentiation": 9
+  },
+  "status": "ready",
+  "roles": [
+    "Data Analyst",
+    "Business Analyst",
+    "Data Product",
+    "Operations Analytics",
+    "Data Science"
+  ],
+  "headline_metrics": {
+    "transactions": 2595732,
+    "campaign_roc_auc": 0.8261440953,
+    "top_decile_observed_response_lift": 3.7927619048,
+    "forecast_wape_pct": 9.3037127516
+  },
+  "data_included": false,
+  "license": "MIT for code; source data excluded",
+  "last_verified": "2026-08-09"
+}
