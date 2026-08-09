@@ -41,6 +41,88 @@
     "top_20pct_responder_capture": 0.624,
     "split": "household-level group holdout to avoid the same household appearing in train and test"
   },
+  "pre_campaign_value_response": {
+    "definition": "Exposure-specific terciles of the mean standardized log sales rate, log basket rate, and inverse recency, all measured before campaign start",
+    "baseline_observed_response_rate": 0.12333518312985571,
+    "tiers": [
+      {
+        "pre_value_tier": "Lower pre-campaign value",
+        "exposures": 2403,
+        "households": 1093,
+        "observed_responses": 187,
+        "observed_response_rate": 0.077819392426134,
+        "mean_pre_sales_per_30d": 123.47855813105228,
+        "mean_pre_baskets_per_30d": 3.994414505033828,
+        "mean_pre_recency_days": 13.346650020807324,
+        "response_index_vs_all": 0.6309585833606006,
+        "cluster_bootstrap_ci_low": 0.06556325759598441,
+        "cluster_bootstrap_ci_high": 0.08898427041499331
+      },
+      {
+        "pre_value_tier": "Middle pre-campaign value",
+        "exposures": 2402,
+        "households": 822,
+        "observed_responses": 302,
+        "observed_response_rate": 0.1257285595337219,
+        "mean_pre_sales_per_30d": 216.4180214790252,
+        "mean_pre_baskets_per_30d": 6.440004104487109,
+        "mean_pre_recency_days": 3.976269775187344,
+        "response_index_vs_all": 1.019405463576004,
+        "cluster_bootstrap_ci_low": 0.10822075831229615,
+        "cluster_bootstrap_ci_high": 0.14226058781526627
+      },
+      {
+        "pre_value_tier": "Higher pre-campaign value",
+        "exposures": 2403,
+        "households": 485,
+        "observed_responses": 400,
+        "observed_response_rate": 0.16645859342488556,
+        "mean_pre_sales_per_30d": 400.0999972271417,
+        "mean_pre_baskets_per_30d": 13.364091196239542,
+        "mean_pre_recency_days": 2.200582605076987,
+        "response_index_vs_all": 1.3496440285788247,
+        "cluster_bootstrap_ci_low": 0.1450332283741148,
+        "cluster_bootstrap_ci_high": 0.18965227399709464
+      }
+    ],
+    "confidence_interval": "500-replicate percentile bootstrap resampling households with all repeated exposures",
+    "interpretation": "descriptive observed response profiling; not randomized uplift or a causal promotion effect"
+  },
+  "segment_category_analysis": {
+    "method": "retrospective descriptive segment-by-department sales share and basket penetration",
+    "eligible_top_overindex_rule": "at least 1,000 segment baskets and at least 1% overall sales share",
+    "top_overindexed_department_by_segment": [
+      {
+        "segment_name": "Dormant / lapsed households",
+        "department": "PASTRY",
+        "sales_share_index_vs_all": 1.473650771007409,
+        "sales_share_pct": 2.2265378822913293,
+        "basket_penetration_pct": 10.606060606060606
+      },
+      {
+        "segment_name": "High-basket-value established shoppers",
+        "department": "NUTRITION",
+        "sales_share_index_vs_all": 1.4088323262217888,
+        "sales_share_pct": 1.7077289552183899,
+        "basket_penetration_pct": 9.68204124031378
+      },
+      {
+        "segment_name": "High-value loyal shoppers",
+        "department": "KIOSK-GAS",
+        "sales_share_index_vs_all": 1.4086502897346773,
+        "sales_share_pct": 9.514417865403747,
+        "basket_penetration_pct": 9.741848776054008
+      },
+      {
+        "segment_name": "Promotion-driven routine shoppers",
+        "department": "MEAT-PCKGD",
+        "sales_share_index_vs_all": 1.2625403320212873,
+        "sales_share_pct": 6.462571374479674,
+        "basket_penetration_pct": 21.99040628792695
+      }
+    ],
+    "interpretation": "descriptive product-mix differences; not causal response or incremental sales"
+  },
   "basket_analysis": {
     "rules_exported": 78,
     "minimum_support": 0.01,
@@ -62,6 +144,7 @@
   },
   "limitations": [
     "Campaign redemption is an observed response label, not causal incremental uplift.",
+    "Pre-campaign value tiers and segment-category differences are descriptive and do not identify treatment effects.",
     "The four-cluster solution favors actionability over the highest silhouette score.",
     "Forecasting covers five high-sales commodities and one 8-week holdout window.",
     "Raw course-provided data are not redistributed in this portfolio version."

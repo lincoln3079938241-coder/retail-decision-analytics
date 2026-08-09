@@ -1,0 +1,35 @@
+{
+  "method": "retrospective descriptive segment-by-department sales share and basket penetration",
+  "eligible_top_overindex_rule": "at least 1,000 segment baskets and at least 1% overall sales share",
+  "top_overindexed_department_by_segment": [
+    {
+      "segment_name": "Dormant / lapsed households",
+      "department": "PASTRY",
+      "sales_share_index_vs_all": 1.473650771007409,
+      "sales_share_pct": 2.2265378822913293,
+      "basket_penetration_pct": 10.606060606060606
+    },
+    {
+      "segment_name": "High-basket-value established shoppers",
+      "department": "NUTRITION",
+      "sales_share_index_vs_all": 1.4088323262217888,
+      "sales_share_pct": 1.7077289552183899,
+      "basket_penetration_pct": 9.68204124031378
+    },
+    {
+      "segment_name": "High-value loyal shoppers",
+      "department": "KIOSK-GAS",
+      "sales_share_index_vs_all": 1.4086502897346773,
+      "sales_share_pct": 9.514417865403747,
+      "basket_penetration_pct": 9.741848776054008
+    },
+    {
+      "segment_name": "Promotion-driven routine shoppers",
+      "department": "MEAT-PCKGD",
+      "sales_share_index_vs_all": 1.2625403320212873,
+      "sales_share_pct": 6.462571374479674,
+      "basket_penetration_pct": 21.99040628792695
+    }
+  ],
+  "interpretation": "descriptive product-mix differences; not causal response or incremental sales"
+}

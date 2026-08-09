@@ -2,13 +2,13 @@
 
 ## 30-second version
 
-I rebuilt two retail course streams into one reproducible decision system over 2.6M transaction lines. A household-grouped campaign holdout achieved 0.826 ROC-AUC and 3.79× top-decile observed-response lift; a department pair reached 2.62 lift; and Seasonal Naive won the forecast benchmark at 9.30% WAPE. I keep cluster, association, and causal limitations explicit.
+I rebuilt two retail course streams into one reproducible decision system over 2.6M transaction lines. A household-grouped campaign holdout achieved 0.826 ROC-AUC and 3.79× top-decile observed-response lift. Pre-campaign value tiers showed 7.78% to 16.65% observed response, with household-cluster bootstrap intervals, and segment/category indices linked customer profiles to product hypotheses. I keep every result observational rather than causal.
 
 ## 2-minute version
 
-The case starts with three operating decisions: who to contact, what to test together, and what demand baseline to trust. I audited the transaction/basket/household grains, built RFM-style profiles, held out entire households for campaign modeling, calculated directional basket rules, and reserved the final eight weeks for forecasting. The analytical lesson is restraint: k=4 is more actionable but has weak silhouette; campaign ranking is not incremental uplift; MEAT→seafood confidence is low despite high lift; and a simple seasonal baseline beat Random Forest.
+The case follows customer → value/behavior → campaign/product response → decision. I audited transaction, basket, and household grains; built RFM-style profiles; held out households for campaign modeling; and created activity-normalized value tiers only from information available before each campaign. Higher-tier exposures responded at 16.65% versus 7.78% for the lower tier, but I call this descriptive because campaign assignment was not randomized. Retrospective category indices add product hypotheses, while the basket and forecast modules retain their original evidence boundaries.
 
-## 15 questions
+## 18 questions
 
 ### 1. Why this business scope?
 
@@ -50,22 +50,46 @@ Top-decile observed response is 45.24% versus an 11.93% test baseline; it is ran
 
 It focuses on positive-class retrieval when response is less common than non-response.
 
-### 11. How are basket rules calculated?
+### 11. How is pre-campaign value defined?
+
+For each exposure I rate-normalize prior sales and baskets by elapsed days, combine their standardized logs with inverse recency, and divide the resulting score into terciles.
+
+### 12. Why not use lifetime customer value?
+
+Lifetime values would include behavior after the campaign and create horizon leakage. Every value-tier input is measured before that exposure starts.
+
+### 13. What did the value tiers show?
+
+Observed response was 7.78%, 12.57%, and 16.65% from lower to higher value; the higher-tier 95% household-bootstrap interval was 14.50%–18.97%.
+
+### 14. Is that promotion uplift?
+
+No. It is observed response profiling. Campaign mix and selection may differ, and there is no randomized no-contact control.
+
+### 15. What does the category index measure?
+
+Within-segment department sales share divided by the same department's share across all households; 1.0 means portfolio average.
+
+### 16. Are category differences causal?
+
+No. Segments use retrospective behavior, so the index supports assortment hypotheses, not incremental sales claims.
+
+### 17. How are basket rules calculated?
 
 Distinct departments per basket feed support, directional confidence, and lift relative to the consequent base rate.
 
-### 12. Why not call the top rule a sales opportunity?
+### 18. Why not call the top rule a sales opportunity?
 
 MEAT→seafood confidence is only 8.43%; association needs an experiment before business impact claims.
 
-### 13. How is forecast leakage prevented?
+### Appendix: How is forecast leakage prevented?
 
 The final eight weeks are never used to fit models; recursive features contain only prior values or prior predictions.
 
-### 14. Why did Seasonal Naive win?
+### Appendix: Why did Seasonal Naive win?
 
 The short weekly series has repeat seasonality and the complex model did not consistently beat that structure.
 
-### 15. What would production require?
+### Appendix: What would production require?
 
 Randomized incrementality tests, margin-aware thresholds, rolling forecasts, and ongoing calibration/drift monitoring.

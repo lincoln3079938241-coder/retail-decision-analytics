@@ -1,9 +1,9 @@
 # Retail Decision Analytics
 
-**Business problem:** decide which households to prioritize, which category pairings to test, and which demand baseline to use.  
+**Business problem:** decide which households to prioritize, how value and category behavior differ, which category pairings to test, and which demand baseline to use.
 **Data:** 2,595,732 line-item transactions, 276,484 baskets, 2,500 anonymous households, 102 weeks.  
-**Method:** grain-checked RFM-style features, scaled K-means diagnostics, household-grouped response modeling, basket support/confidence/lift, and an eight-week forecast benchmark.  
-**Result:** **0.826 ROC-AUC** and **3.79× top-decile observed-response lift**; strongest category association **2.62 lift**; Seasonal Naive led forecasting at **9.30% WAPE**.
+**Method:** grain-checked RFM-style features, scaled K-means diagnostics, household-grouped response modeling, pre-campaign value profiling, segment/category indices, basket rules, and an eight-week forecast benchmark.
+**Result:** **0.826 ROC-AUC** and **3.79× top-decile observed-response lift**; higher pre-campaign value exposures showed **16.65% observed response** versus **7.78%** for the lower tier; Seasonal Naive led forecasting at **9.30% WAPE**.
 
 ![Campaign response by score decile](figures/03_campaign_decile_lift.png)
 
@@ -18,11 +18,15 @@ flowchart LR
   C --> F["Basket department pairs"]
   C --> G["Weekly category sales"]
   D --> H["Four descriptive profiles"]
+  D --> M["Segment × category differences"]
   E --> I["Response ranking"]
+  E --> N["Pre-campaign value × response"]
   F --> J["Merchandising hypotheses"]
   G --> K["Forecast baseline"]
   H --> L["Recommendations with limits"]
+  M --> L
   I --> L
+  N --> L
   J --> L
   K --> L
 ```
@@ -56,6 +60,20 @@ Entire households—not rows—are held out. The Random Forest test covers 2,096
 
 This is **observed redemption ranking**, not causal uplift. A randomized no-contact/business-as-usual group is required before claiming incremental response or financial impact.
 
+## Pre-campaign customer value × observed response
+
+For every campaign exposure, the pipeline creates a value score from sales rate, basket rate, and inverse recency measured strictly before campaign start. Exposure-specific terciles show an ordered descriptive pattern: **7.78%** response for the lower tier, **12.57%** for the middle tier, and **16.65%** for the higher tier, versus **12.33%** overall. The higher-tier 95% interval is **14.50%–18.97%**; intervals use 500 household-cluster bootstrap replicates so repeated exposures stay together.
+
+![Observed response by pre-campaign value](figures/08_pre_campaign_value_response.png)
+
+This is customer value profiling, not promotion uplift. Tier assignment is observational and campaign mix may differ across tiers.
+
+## Segment × category differences
+
+The four retrospective customer profiles have different category mixes. Under a minimum of 1,000 segment baskets and 1% overall sales share, the strongest over-indexed departments are PASTRY for dormant/lapsed households (**1.47×**), NUTRITION for high-basket-value established shoppers (**1.41×**), KIOSK-GAS for high-value loyal shoppers (**1.41×**), and MEAT-PCKGD for promotion-driven routine shoppers (**1.26×**). These indices support assortment or merchandising hypotheses; they do not establish incremental sales.
+
+![Segment category mix](figures/09_segment_category_index.png)
+
 ## Basket analysis
 
 The strongest exported department pair was MEAT with SEAFOOD-PCKGD: support **1.63%** (4,494 baskets), lift **2.62**. Direction matters: MEAT → seafood confidence is only **8.43%**, while seafood → MEAT is **50.80%**. The responsible recommendation is an A/B merchandising hypothesis—not a claim that pairing will increase sales.
@@ -76,4 +94,4 @@ Expected input files are listed in `src/pipeline.py`. Raw data are not redistrib
 
 ## Limitations
 
-One retailer-like academic dataset; descriptive clusters; response rather than incrementality; one forecast origin; only five forecasted commodities. No deployment, revenue gain, cost saving, or realized customer impact is claimed.
+One retailer-like academic dataset; retrospective descriptive clusters; response rather than incrementality; observational value/category differences; one forecast origin; only five forecasted commodities. No deployment, revenue gain, cost saving, or realized customer impact is claimed.

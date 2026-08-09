@@ -1,21 +1,3 @@
-# 简历要点
+# Resume Bullets
 
-## 数据分析版
-
-- 整合 259 万条零售交易与商品、家庭、活动及兑换数据，构建客户分层、活动响应、购物篮和需求预测的一体化分析链路。
-- 采用家庭分组留出验证活动模型，取得 ROC-AUC 0.826、最高评分十分位 3.79× 观察响应提升，并明确区分预测与因果增量。
-
-## 商业分析版
-
-- 将“触达谁、搭配什么、备货多少”拆为可验证决策问题；识别 2.62 lift 的肉类—包装海鲜关联并转化为 A/B 陈列假设。
-- 对 4 类客户画像给出差异化策略，同时公开 k=4 silhouette 仅 0.171，避免把描述性分群包装成天然客群。
-
-## 数据产品版
-
-- 设计可复现零售决策流水线，统一输出数据质量、模型指标、评分十分位、客群画像、关联规则及预测结果。
-- 建立指标边界：活动只报告观察响应排序，规则只报告 support/confidence/lift，预测只采用时间留出结果。
-
-## AI 产品版
-
-- 将随机森林结果转化为可实验的触达队列，在 476 个未见家庭上实现 0.826 ROC-AUC，并提出随机对照与利润阈值方案。
-- 以 9.30% WAPE 的 Seasonal Naive 击败复杂模型为依据，定义“复杂模型必须持续优于基线”的上线门槛。
+Current evidence-verified role variants are in [`RESUME_BULLETS_V3.md`](RESUME_BULLETS_V3.md). Wave 1 adds pre-campaign customer-value response and segment/category evidence while preserving the non-causal boundary.

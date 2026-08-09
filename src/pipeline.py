@@ -195,7 +195,6 @@ def segment_households(hh: pd.DataFrame, results: Path, figures: Path) -> tuple[
     segmented["segment_name"] = segmented["cluster"].map(name_map)
     profile["segment_name"] = profile["cluster"].map(name_map)
     profile.to_csv(results / "segment_profiles.csv", index=False)
-    segmented.to_csv(results / "household_segments.csv", index=False)
 
     heat_cols = ["recency_days", "total_sales", "baskets", "avg_basket_value", "coupon_discount_ratio", "retail_discount_ratio"]
     heat = profile.set_index("segment_name")[heat_cols]
@@ -366,6 +365,153 @@ def run_campaign_model(model_df: pd.DataFrame, results: Path, figures: Path) -> 
     return metrics, targeting
 
 
+def pre_campaign_value_response(model_df: pd.DataFrame, results: Path, figures: Path) -> tuple[pd.DataFrame, dict]:
+    """Profile observed response by value tiers built only from pre-campaign behavior.
+
+    The tier is exposure-specific and uses rate-normalized pre-period features so a
+    later campaign does not automatically imply a higher cumulative value. All
+    confidence intervals resample households, preserving repeated exposures.
+    """
+    frame = model_df.copy()
+    exposure_days = frame["start_day"].clip(lower=30)
+    frame["pre_sales_per_30d"] = frame["pre_total_sales"] / exposure_days * 30
+    frame["pre_baskets_per_30d"] = frame["pre_baskets"] / exposure_days * 30
+    score_inputs = pd.DataFrame({
+        "sales_rate": np.log1p(frame["pre_sales_per_30d"].clip(lower=0)),
+        "basket_rate": np.log1p(frame["pre_baskets_per_30d"].clip(lower=0)),
+        "recency": -np.log1p(frame["pre_recency_days"].clip(lower=0)),
+    })
+    scaled = (score_inputs - score_inputs.mean()) / score_inputs.std(ddof=0).replace(0, 1)
+    frame["pre_value_score"] = scaled.mean(axis=1)
+    frame["pre_value_tier"] = pd.qcut(
+        frame["pre_value_score"].rank(method="first"),
+        q=3,
+        labels=["Lower pre-campaign value", "Middle pre-campaign value", "Higher pre-campaign value"],
+    )
+
+    order = ["Lower pre-campaign value", "Middle pre-campaign value", "Higher pre-campaign value"]
+    grouped = frame.groupby("pre_value_tier", observed=True).agg(
+        exposures=("redeemed", "size"),
+        households=("household_key", "nunique"),
+        observed_responses=("redeemed", "sum"),
+        observed_response_rate=("redeemed", "mean"),
+        mean_pre_sales_per_30d=("pre_sales_per_30d", "mean"),
+        mean_pre_baskets_per_30d=("pre_baskets_per_30d", "mean"),
+        mean_pre_recency_days=("pre_recency_days", "mean"),
+    ).reindex(order).reset_index()
+    baseline = float(frame["redeemed"].mean())
+    grouped["response_index_vs_all"] = grouped["observed_response_rate"] / baseline
+
+    rng = np.random.default_rng(RANDOM_STATE)
+    households = frame["household_key"].drop_duplicates().to_numpy()
+    boot = {tier: [] for tier in order}
+    household_groups = {hh: grp for hh, grp in frame.groupby("household_key", observed=True)}
+    for _ in range(500):
+        sampled = rng.choice(households, size=len(households), replace=True)
+        sample = pd.concat([household_groups[hh] for hh in sampled], ignore_index=True)
+        rates = sample.groupby("pre_value_tier", observed=True)["redeemed"].mean()
+        for tier in order:
+            if tier in rates:
+                boot[tier].append(float(rates.loc[tier]))
+    grouped["cluster_bootstrap_ci_low"] = [float(np.quantile(boot[t], 0.025)) for t in order]
+    grouped["cluster_bootstrap_ci_high"] = [float(np.quantile(boot[t], 0.975)) for t in order]
+    grouped.to_csv(results / "pre_campaign_value_response.csv", index=False)
+
+    by_type = frame.groupby(["description", "pre_value_tier"], observed=True).agg(
+        exposures=("redeemed", "size"),
+        households=("household_key", "nunique"),
+        observed_response_rate=("redeemed", "mean"),
+    ).reset_index()
+    by_type.to_csv(results / "pre_campaign_value_response_by_type.csv", index=False)
+
+    fig, ax = plt.subplots(figsize=(8.2, 4.8))
+    rates = grouped["observed_response_rate"].to_numpy()
+    yerr = np.vstack([
+        rates - grouped["cluster_bootstrap_ci_low"].to_numpy(),
+        grouped["cluster_bootstrap_ci_high"].to_numpy() - rates,
+    ])
+    ax.bar(order, rates * 100, color=[COLORS[4], COLORS[2], COLORS[0]])
+    ax.errorbar(order, rates * 100, yerr=yerr * 100, fmt="none", ecolor="#111111", capsize=5)
+    ax.axhline(baseline * 100, linestyle="--", color="#111111", label=f"All exposures {baseline:.1%}")
+    ax.set(title="Observed Campaign Response by Pre-Campaign Customer Value", xlabel="", ylabel="Observed redemption rate (%)")
+    ax.tick_params(axis="x", rotation=12)
+    ax.legend(frameon=False)
+    savefig(figures / "08_pre_campaign_value_response.png")
+
+    summary = {
+        "definition": "Exposure-specific terciles of the mean standardized log sales rate, log basket rate, and inverse recency, all measured before campaign start",
+        "baseline_observed_response_rate": baseline,
+        "tiers": grouped.to_dict(orient="records"),
+        "confidence_interval": "500-replicate percentile bootstrap resampling households with all repeated exposures",
+        "interpretation": "descriptive observed response profiling; not randomized uplift or a causal promotion effect",
+    }
+    (results / "pre_campaign_value_response_summary.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=False, default=float), encoding="utf-8"
+    )
+    return grouped, summary
+
+
+def segment_category_analysis(trans: pd.DataFrame, segmented: pd.DataFrame, results: Path, figures: Path) -> tuple[pd.DataFrame, dict]:
+    """Describe category mix and basket penetration within retrospective segments."""
+    valid = trans[(trans["quantity"] > 0) & (trans["sales_value"] > 0)].copy()
+    valid = valid.merge(
+        segmented[["household_key", "segment_name"]],
+        on="household_key", how="inner", validate="many_to_one",
+    )
+    valid["department"] = valid["department"].astype(str).str.strip()
+    valid = valid[~valid["department"].isin(["", "nan", "None"])]
+
+    segment_totals = valid.groupby("segment_name").agg(
+        segment_sales=("sales_value", "sum"),
+        segment_baskets=("basket_id", "nunique"),
+        segment_households=("household_key", "nunique"),
+    )
+    overall_share = valid.groupby("department")["sales_value"].sum()
+    overall_share = overall_share / overall_share.sum()
+    category = valid.groupby(["segment_name", "department"], as_index=False).agg(
+        sales_value=("sales_value", "sum"),
+        baskets=("basket_id", "nunique"),
+        households=("household_key", "nunique"),
+    )
+    category = category.join(segment_totals, on="segment_name")
+    category["sales_share_pct"] = category["sales_value"] / category["segment_sales"] * 100
+    category["basket_penetration_pct"] = category["baskets"] / category["segment_baskets"] * 100
+    category["household_penetration_pct"] = category["households"] / category["segment_households"] * 100
+    category["overall_sales_share_pct"] = category["department"].map(overall_share) * 100
+    category["sales_share_index_vs_all"] = category["sales_share_pct"] / category["overall_sales_share_pct"]
+    category = category.sort_values(["segment_name", "sales_share_index_vs_all"], ascending=[True, False])
+    category.to_csv(results / "segment_category_profiles.csv", index=False)
+
+    eligible = category[(category["baskets"] >= 1_000) & (category["overall_sales_share_pct"] >= 1.0)]
+    top_index = eligible.sort_values("sales_share_index_vs_all", ascending=False).groupby("segment_name", as_index=False).first()
+    top_index.to_csv(results / "segment_category_top_overindex.csv", index=False)
+
+    top_departments = valid.groupby("department")["sales_value"].sum().nlargest(8).index
+    heat = category[category["department"].isin(top_departments)].pivot(
+        index="segment_name", columns="department", values="sales_share_index_vs_all"
+    ).fillna(0)
+    fig, ax = plt.subplots(figsize=(10.2, 5.0))
+    im = ax.imshow(heat.clip(upper=2.0), cmap="RdYlGn", aspect="auto", vmin=0.5, vmax=1.5)
+    ax.set_xticks(range(len(heat.columns)), heat.columns, rotation=35, ha="right")
+    ax.set_yticks(range(len(heat.index)), heat.index)
+    ax.set_title("Customer Segment Category Mix (Index vs All Households)")
+    fig.colorbar(im, ax=ax, label="Sales-share index (1.0 = portfolio average)")
+    savefig(figures / "09_segment_category_index.png")
+
+    summary = {
+        "method": "retrospective descriptive segment-by-department sales share and basket penetration",
+        "eligible_top_overindex_rule": "at least 1,000 segment baskets and at least 1% overall sales share",
+        "top_overindexed_department_by_segment": top_index[[
+            "segment_name", "department", "sales_share_index_vs_all", "sales_share_pct", "basket_penetration_pct"
+        ]].to_dict(orient="records"),
+        "interpretation": "descriptive product-mix differences; not causal response or incremental sales",
+    }
+    (results / "segment_category_summary.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=False, default=float), encoding="utf-8"
+    )
+    return category, summary
+
+
 def association_rules(trans: pd.DataFrame, results: Path, figures: Path) -> pd.DataFrame:
     valid = trans[(trans["quantity"] > 0) & (trans["sales_value"] > 0)].copy()
     valid["department"] = valid["department"].astype(str).str.strip()
@@ -524,8 +670,9 @@ def main() -> None:
     household = build_household_features(trans)
     segmented, silhouette, segment_stability = segment_households(household, results, figures)
     campaign_df = build_campaign_features(data, trans)
-    campaign_df.to_csv(results / "campaign_model_dataset.csv", index=False)
     campaign_metrics, targeting = run_campaign_model(campaign_df, results, figures)
+    value_response, value_response_summary = pre_campaign_value_response(campaign_df, results, figures)
+    segment_categories, segment_category_summary = segment_category_analysis(trans, segmented, results, figures)
     rules = association_rules(trans, results, figures)
     forecast_metrics, forecast_summary = forecast_weekly_sales(trans, results, figures)
 
@@ -547,6 +694,8 @@ def main() -> None:
             **{k: v for k, v in targeting.items() if k != "best_model"},
             "split": "household-level group holdout to avoid the same household appearing in train and test",
         },
+        "pre_campaign_value_response": value_response_summary,
+        "segment_category_analysis": segment_category_summary,
         "basket_analysis": {
             "rules_exported": int(len(rules)),
             "minimum_support": 0.01,
@@ -561,6 +710,7 @@ def main() -> None:
         },
         "limitations": [
             "Campaign redemption is an observed response label, not causal incremental uplift.",
+            "Pre-campaign value tiers and segment-category differences are descriptive and do not identify treatment effects.",
             "The four-cluster solution favors actionability over the highest silhouette score.",
             "Forecasting covers five high-sales commodities and one 8-week holdout window.",
             "Raw course-provided data are not redistributed in this portfolio version.",

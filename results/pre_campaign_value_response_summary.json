@@ -1,0 +1,47 @@
+{
+  "definition": "Exposure-specific terciles of the mean standardized log sales rate, log basket rate, and inverse recency, all measured before campaign start",
+  "baseline_observed_response_rate": 0.12333518312985571,
+  "tiers": [
+    {
+      "pre_value_tier": "Lower pre-campaign value",
+      "exposures": 2403,
+      "households": 1093,
+      "observed_responses": 187,
+      "observed_response_rate": 0.077819392426134,
+      "mean_pre_sales_per_30d": 123.47855813105228,
+      "mean_pre_baskets_per_30d": 3.994414505033828,
+      "mean_pre_recency_days": 13.346650020807324,
+      "response_index_vs_all": 0.6309585833606006,
+      "cluster_bootstrap_ci_low": 0.06556325759598441,
+      "cluster_bootstrap_ci_high": 0.08898427041499331
+    },
+    {
+      "pre_value_tier": "Middle pre-campaign value",
+      "exposures": 2402,
+      "households": 822,
+      "observed_responses": 302,
+      "observed_response_rate": 0.1257285595337219,
+      "mean_pre_sales_per_30d": 216.4180214790252,
+      "mean_pre_baskets_per_30d": 6.440004104487109,
+      "mean_pre_recency_days": 3.976269775187344,
+      "response_index_vs_all": 1.019405463576004,
+      "cluster_bootstrap_ci_low": 0.10822075831229615,
+      "cluster_bootstrap_ci_high": 0.14226058781526627
+    },
+    {
+      "pre_value_tier": "Higher pre-campaign value",
+      "exposures": 2403,
+      "households": 485,
+      "observed_responses": 400,
+      "observed_response_rate": 0.16645859342488556,
+      "mean_pre_sales_per_30d": 400.0999972271417,
+      "mean_pre_baskets_per_30d": 13.364091196239542,
+      "mean_pre_recency_days": 2.200582605076987,
+      "response_index_vs_all": 1.3496440285788247,
+      "cluster_bootstrap_ci_low": 0.1450332283741148,
+      "cluster_bootstrap_ci_high": 0.18965227399709464
+    }
+  ],
+  "confidence_interval": "500-replicate percentile bootstrap resampling households with all repeated exposures",
+  "interpretation": "descriptive observed response profiling; not randomized uplift or a causal promotion effect"
+}

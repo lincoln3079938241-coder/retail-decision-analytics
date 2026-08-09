@@ -1,0 +1,10 @@
+description,pre_value_tier,exposures,households,observed_response_rate
+TypeA,Lower pre-campaign value,1617,958,0.09523809523809523
+TypeA,Middle pre-campaign value,1315,705,0.1650190114068441
+TypeA,Higher pre-campaign value,1047,432,0.2521489971346705
+TypeB,Lower pre-campaign value,686,488,0.04518950437317784
+TypeB,Middle pre-campaign value,892,493,0.0773542600896861
+TypeB,Higher pre-campaign value,1077,373,0.1021355617455896
+TypeC,Lower pre-campaign value,100,93,0.02
+TypeC,Middle pre-campaign value,195,158,0.08205128205128205
+TypeC,Higher pre-campaign value,279,183,0.0931899641577061

@@ -6,4 +6,4 @@ The repository does not include raw data. The local audit found 2,595,732 transa
 
 Positive-purchase analytics exclude quantity ≤ 0 or sales ≤ 0 but retain counts of those rows in `results/data_quality.json`. Sales means `sales_value` from qualifying lines; it is not profit, margin, or net revenue. Household keys are anonymous grouping identifiers and are excluded from the public result package.
 
-**Provenance:** original CA/SPMF work supplied the business context; the public pipeline, validation design, stability diagnostics, figures, and wording were independently rerun/refactored. Code is MIT-licensed. Data remain governed by the source provider’s terms.
+**Provenance:** original CA/SPMF work supplied the business context; the portfolio pipeline, validation design, stability diagnostics, pre-campaign value analysis, segment/category profiles, figures, and wording were independently rerun/refactored. Code is MIT-licensed. Data remain governed by the source provider’s terms.
